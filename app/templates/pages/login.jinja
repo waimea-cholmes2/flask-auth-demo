@@ -1,6 +1,6 @@
 {#=====================================================
-  Sign Up page
-  - used to sign up new users
+  login page
+  - used login users
 =====================================================#}
 
 {% extends 'pages/base.jinja' %}
@@ -8,7 +8,7 @@
 
 {% block title %}
 
-    Flask Demo - Sign-Up
+    Flask Demo - Login
 
 {% endblock %}
 
@@ -18,14 +18,7 @@
 
         <h3>Sign Up</h3>
 
-        <form action="/add-user" method="POST">
-
-            <input
-                type="text"
-                name="name"
-                placeholder="Name"
-                required
-            >
+        <form action="/login-user" method="POST">
 
             <input
                 type="text"
@@ -42,7 +35,7 @@
             >
         
 
-            <button>Sign Up</button>
+            <button>Login</button>
 
         </form>
 

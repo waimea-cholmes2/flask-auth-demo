@@ -2,7 +2,7 @@
 # App Creation and Launch
 #===========================================================
 
-from flask import Flask, render_template, request, flash, redirect
+from flask import Flask, render_template, session, request, flash, redirect
 from werkzeug.security import generate_password_hash, check_password_hash
 import html
 
@@ -43,6 +43,14 @@ def about():
 @app.get("/signup/")
 def signup():
     return render_template("pages/signup.jinja")
+
+
+#-----------------------------------------------------------
+# Login page route
+#-----------------------------------------------------------
+@app.get("/login/")
+def login():
+    return render_template("pages/login.jinja")
 
 
 #-----------------------------------------------------------
@@ -139,6 +147,46 @@ def add_a_user():
         # Go back to the home page
         flash(f"User '{name}' added", "success")
         return redirect("/")
+    
+
+#-----------------------------------------------------------
+# Route for logging in a user
+#-----------------------------------------------------------
+@app.post("/login-user")
+def login_user():
+    # Get the data from the form
+    username = request.form.get("username")
+    password = request.form.get("password")
+
+    # Sanitise the inputs
+    username = html.escape(username)
+
+    with connect_db() as client:
+        # Try to find a matching record
+        sql = """SELECT id, name, password_hash 
+                 FROM users   
+                 WHERE username=?
+              """
+        values = [username]
+        result = client.execute(sql, values)
+
+        #check if we got a record
+        if result.rows: 
+            #yes so user exists
+            user = result.rows[0]
+            hash = user["password_hash"]
+
+            #check if passwords match
+            if check_password_hash(hash, password):
+                #yes  so save the details
+                session["user_id"] = user["id"]
+                session["user_name"] = user["name"]
+                flash("Logged in successfully", "success")
+                return redirect("/")
+
+        # Go back to login page if password or username is wrong
+        flash("Incorrect Crendentials", "error")
+        return redirect("/login")
 
 
 
