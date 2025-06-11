@@ -92,6 +92,7 @@ def show_one_thing(id):
             # yes, so show it on the page
             thing = result.rows[0]
             return render_template("pages/thing.jinja", thing=thing)
+        
 
         else:
             # No, so show error
@@ -109,10 +110,13 @@ def add_a_thing():
     # Sanitise the inputs
     name = html.escape(name)
 
+    #get the user id from the session
+    user_id = session["user_id"]
+    
     with connect_db() as client:
         # Add the thing to the DB
-        sql = "INSERT INTO things (name) VALUES (?)"
-        values = [name]
+        sql = "INSERT INTO things (name, user_id) VALUES (?, ?)"
+        values = [name, user_id]
         client.execute(sql, values)
 
         # Go back to the home page
@@ -197,13 +201,27 @@ def login_user():
 @app.get("/delete/<int:id>")
 def delete_a_thing(id):
     with connect_db() as client:
-        # Delete the thing from the DB
-        sql = "DELETE FROM things WHERE id=?"
-        values = [id]
+        # Get our user id from the session
+        user_id = session["user_id"]
+
+        # Delete the thing from the DB checking that we are the owner
+        sql = "DELETE FROM things WHERE id=? AND user_id=?"
+        values = [id, user_id]
         client.execute(sql, values)
 
         # Go back to the home page
         flash("Thing deleted", "warning")
         return redirect("/things")
 
+
+
+#-----------------------------------------------------------
+# Route for logging out a user
+#-----------------------------------------------------------
+@app.get("/logout")
+def logout():
+    session.pop("user_id")
+    session.pop("user_name")
+    flash("You've been logged out")
+    return redirect("/")
 
